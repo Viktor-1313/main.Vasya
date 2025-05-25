@@ -1,12 +1,12 @@
 import os
+import webbrowser
 from tkinter import Tk, Label, Frame, Entry, messagebox, PhotoImage, Canvas
 
 
 class RoundedButton(Canvas):
     """Класс для создания закругленных кнопок"""
-
     def __init__(self, master=None, text="", radius=40, bg="green", fg="white",
-                 active_bg="dark green", active_fg="black", command=None, **kwargs):
+                 active_bg="dark green", active_fg="black", command=None, font=("Arial", 14), **kwargs):
         super().__init__(master, highlightthickness=0, **kwargs)
         self.config(bg=master.cget("bg"))
         self.radius = radius
@@ -17,6 +17,7 @@ class RoundedButton(Canvas):
         self.command = command
         self.text = text
         self.is_active = False
+        self.font = font  # Добавляем параметр шрифта
         # Обработка событий
         self.bind("<Button-1>", self._on_click)
         self.bind("<Enter>", self._on_enter)
@@ -32,9 +33,9 @@ class RoundedButton(Canvas):
         # Рисуем закругленный прямоугольник
         bg_color = self.active_bg if self.is_active else self.bg
         self.create_rounded_rect(0, 0, width, height, radius=self.radius, fill=bg_color, outline="")
-        # Добавляем текст
+        # Добавляем текст с использованием параметра font
         fg_color = self.active_fg if self.is_active else self.fg
-        self.create_text(width // 2, height // 2, text=self.text, fill=fg_color, font=("Arial", 14))
+        self.create_text(width // 2, height // 2, text=self.text, fill=fg_color, font=self.font)
 
     def _on_click(self, event):
         """Обработчик нажатия на кнопку"""
@@ -123,6 +124,9 @@ class App(Tk):
         self.create_frame("Feedback_end", self.create_feedback_ui)
         self.create_frame("Phone_loss", self.create_phone_loss_ui)
         self.create_frame("settings", self.create_settings_ui)
+        self.create_frame("Chief_scam_1", self.create_chief_scam_1_ui)
+        self.create_frame("boss", self.boss_ui)
+
 
     def create_frame(self, name, setup_func):
         """Создает фрейм с указанной функцией настройки"""
@@ -232,13 +236,26 @@ class App(Tk):
         )
         go_button.place(relx=0.5, rely=0.9, anchor="center")
 
+        # Автоматический фокус при наведении на поле ввода телефона
+        def focus_phone(event):
+            phone_entry.focus_set()  # Устанавливаем фокус на поле ввода телефона
+
+        phone_entry.bind("<Enter>", focus_phone)  # Привязываем событие <Enter> к фокусу
+
+        # Автоматический фокус при наведении на поле ввода кода из SMS
+        def focus_sms(event):
+            sms_entry.focus_set()  # Устанавливаем фокус на поле ввода кода из SMS
+
+        sms_entry.bind("<Enter>", focus_sms)  # Привязываем событие <Enter> к фокусу
+
     def create_choose_a_situation_ui(self, frame):
         """Настройка UI выбора ситуаций"""
         if "choose_a_situation" in self.images:
             bg_label = Label(frame, image=self.images["choose_a_situation"])
             bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+
         # Кнопка настроек (шестерёнка)
-        if "gear_icon" in self.images:
+        def create_gear_button():
             gear_button = RoundedButton(
                 frame,
                 text="⚙️",
@@ -253,56 +270,236 @@ class App(Tk):
             )
             gear_button.place(relx=0.1, rely=0.07, anchor="center")
 
-        # Список ситуаций
-        situations = [
-            ("Проспал на работу", "Save_me_from_my_boss"),
-            ("Горит дедлайн", "required_time"),
-            ("Выход в субботу", "I_m_not_going_to_work_on_Saturday"),
-            ("Гуляем с друзьями", "To_a_bar_with_friends"),
-            ("Оставить отзыв", "Feedback_end")
-        ]
-        for i, (text, target) in enumerate(situations):
-            RoundedButton(
+        create_gear_button()
+
+        # Кнопка "Проспал на работу"
+        def create_late_for_work_button():
+            late_for_work_button = RoundedButton(
                 frame,
-                text=text,
+                text="Проспал на работу",
                 bg="green",
                 fg="white",
                 active_bg="dark green",
                 active_fg="black",
                 radius=25,
-                command=lambda t=target: self.show_frame(t),
+                command=lambda: self.show_frame("Save_me_from_my_boss"),
                 width=300,
                 height=50
-            ).place(relx=0.5, rely=0.2 + i * 0.1, anchor="center")
+            )
+            late_for_work_button.place(relx=0.5, rely=0.2, anchor="center")
 
+        create_late_for_work_button()
+
+        # Кнопка "Горит дедлайн"
+        def create_deadline_button():
+            deadline_button = RoundedButton(
+                frame,
+                text="Горит дедлайн",
+                bg="green",
+                fg="white",
+                active_bg="dark green",
+                active_fg="black",
+                radius=25,
+                command=lambda: self.show_frame("required_time"),
+                width=300,
+                height=50
+            )
+            deadline_button.place(relx=0.5, rely=0.3, anchor="center")
+
+        create_deadline_button()
+
+        # Кнопка "Выход в субботу"
+        def create_saturday_button():
+            saturday_button = RoundedButton(
+                frame,
+                text="Выход в субботу",
+                bg="green",
+                fg="white",
+                active_bg="dark green",
+                active_fg="black",
+                radius=25,
+                command=lambda: self.show_frame("I_m_not_going_to_work_on_Saturday"),
+                width=300,
+                height=50
+            )
+            saturday_button.place(relx=0.5, rely=0.4, anchor="center")
+
+        create_saturday_button()
+
+        # Кнопка "Гуляем с друзьями"
+        def create_friends_button():
+            friends_button = RoundedButton(
+                frame,
+                text="Гуляем с друзьями",
+                bg="green",
+                fg="white",
+                active_bg="dark green",
+                active_fg="black",
+                radius=25,
+                command=lambda: self.show_frame("To_a_bar_with_friends"),
+                width=300,
+                height=50
+            )
+            friends_button.place(relx=0.5, rely=0.5, anchor="center")
+
+        create_friends_button()
+
+        # Кнопка "Оставить отзыв"
+        def create_feedback_button():
+            feedback_button = RoundedButton(
+                frame,
+                text="Оставить отзыв",
+                bg="green",
+                fg="white",
+                active_bg="dark green",
+                active_fg="black",
+                radius=25,
+                command=lambda: self.show_frame("Feedback_end"),
+                width=300,
+                height=50
+            )
+            feedback_button.place(relx=0.5, rely=0.6, anchor="center")
+
+        create_feedback_button()
+
+        # Кнопка "создать свою карту"
+        import webbrowser  # Импортируем модуль для работы с браузером
+
+        # Кнопка "Создать свою карту"
+        def create_custom_map_button():
+            def open_yandex_maps():
+                """Открывает Яндекс.Карты в браузере"""
+                webbrowser.open("https://yandex.ru/maps/ ")
+
+            custom_map_button = RoundedButton(
+                frame,
+                text="Создать свою карту",
+                bg="green",
+                fg="white",
+                active_bg="dark green",
+                active_fg="black",
+                radius=25,
+                command=open_yandex_maps,  # Вызываем функцию для открытия Яндекс.Карт
+                width=300,
+                height=50
+            )
+            custom_map_button.place(relx=0.5, rely=0.7, anchor="center")
+
+        create_custom_map_button()
         # Кнопка "Потерял телефон"
-        RoundedButton(
-            frame,
-            text="Потерял телефон",
-            bg="red",
-            fg="white",
-            active_bg="dark red",
-            active_fg="black",
-            radius=25,
-            command=lambda: self.show_frame("Phone_loss"),
-            width=300,
-            height=50
-        ).place(relx=0.5, rely=0.9, anchor="center")
+        def create_phone_loss_button():
+            phone_loss_button = RoundedButton(
+                frame,
+                text="Потерял телефон",
+                bg="red",
+                fg="white",
+                active_bg="dark red",
+                active_fg="black",
+                radius=25,
+                command=lambda: self.show_frame("Phone_loss"),
+                width=300,
+                height=50
+            )
+            phone_loss_button.place(relx=0.5, rely=0.9, anchor="center")
 
+        create_phone_loss_button()
     def create_save_me_from_my_boss_ui(self, frame):
         """Экран 'Проспал на работу'"""
-        Label(frame, text="Проспал на работу", font=("Arial", 20)).place(relx=0.5, rely=0.1, anchor="center")
+        if "Save_me_from_my_boss" in self.images:
+            bg_label = Label(frame, image=self.images["Save_me_from_my_boss"])
+            bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+
+
+        def create_custom_map_button():
+            def open_yandex_traffic():
+                """Открывает Яндекс.Пробки в браузере"""
+                url = "https://yandex.ru/maps/2/saint-petersburg/probki/?ll=30.314997%2C59.938784&z=11/ "
+                webbrowser.open(url)  # Открываем ссылку в браузере
+
+            custom_map_button = RoundedButton(
+                frame,
+                text="Выбрать самую большую пробку",
+                bg="green",
+                fg="white",
+                active_bg="dark green",
+                active_fg="black",
+                command=open_yandex_traffic,  # Вызываем функцию для открытия Яндекс.Пробок
+                width=350,
+                height=50
+            )
+            custom_map_button.place(relx=0.5, rely=0.8, anchor="center")
+
+        create_custom_map_button()
+
+        Label(frame, text="", font=("Arial", 20)).place(relx=0.5, rely=0.1, anchor="center")
         RoundedButton(
             frame,
-            text="Назад",
-            bg="blue",
+            text="Scam",
+            bg="green",
             fg="white",
-            active_bg="dark blue",
+            active_bg="dark green",
             active_fg="black",
-            command=lambda: self.show_frame("choose_a_situation"),
-            width=200,
+            command=lambda: self.show_frame("Chief_scam_1"),
+            width=350,
             height=50
         ).place(relx=0.5, rely=0.9, anchor="center")
+
+    def create_chief_scam_1_ui(self, frame):
+        """Настройка UI для экрана 'Chief_scam_1'"""
+        if "Chief_scam_1" in self.images:
+            bg_label = Label(frame, image=self.images["Chief_scam_1"])
+            bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+        # Пример кнопки "Назад"
+        RoundedButton(
+            frame,
+            text="←",
+            bg="",
+            fg="black",
+            active_bg="",
+            active_fg="grey",
+            radius=25,
+            command=lambda: self.show_frame("choose_a_situation"),
+            width=30,
+            height=30
+        ).place(relx=0.1, rely=0.1, anchor="center")
+
+        # Пример кнопки "Вы в пути"
+        RoundedButton(
+            frame,
+            text="Вы в пути",
+            bg="green",
+            fg="white",
+            active_bg="dark green",
+            active_fg="black",
+            radius=25,
+            command=lambda: self.show_frame("boss"),
+            width=150,
+            height=30
+        ).place(relx=0.22, rely=0.71, anchor="center")
+
+    def boss_ui(self, frame):
+        """Настройка UI для экрана 'boss'"""
+        if "boss" in self.images:
+            bg_label = Label(frame, image=self.images["boss"])
+            bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+        # Пример кнопки "Назад" с уменьшенным шрифтом
+        RoundedButton(
+            frame,
+            text="Сидим с котом за столом,"
+                 "я и он, прямо в субботу",
+            bg="green",
+            fg="white",
+            active_bg="dark green",
+            active_fg="black",
+            radius=25,
+            command=lambda: self.show_frame("choose_a_situation"),
+            width=370,
+            height=50,
+            font=("Arial", 12)  # Уменьшаем размер шрифта до 10 для этой кнопки
+        ).place(relx=0.5, rely=0.7, anchor="center")
 
     def create_required_time_ui(self, frame):
         """Экран 'Горит дедлайн'"""
